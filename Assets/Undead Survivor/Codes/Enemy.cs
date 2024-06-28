@@ -31,6 +31,8 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        if (!GameManager.Instance.isLive)
+            return;
 
         if (!isLive || anim.GetCurrentAnimatorStateInfo(0).IsName("Hit")) // 두번째 조건 덕에 몬스터가 Hit 됐을 때 플레이어에게 다가가는 동작을 잠깐 멈춤.
         {
@@ -45,6 +47,9 @@ public class Enemy : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (!GameManager.Instance.isLive)
+            return;
+
         if (!isLive)
         {
             return;
@@ -83,8 +88,9 @@ public class Enemy : MonoBehaviour
 
         if (health > 0)
         {
-            // Alive, His Action
+            // Alive, Hit Action
             anim.SetTrigger("Hit");
+            AudioManager.instance.PlaySfx(AudioManager.Sfx.Hit);
         }
         else
         {
@@ -95,6 +101,11 @@ public class Enemy : MonoBehaviour
             anim.SetBool("Dead", true);
             GameManager.Instance.kill++;
             GameManager.Instance.GetExp();
+
+            if (GameManager.Instance.isLive)
+            {
+                AudioManager.instance.PlaySfx(AudioManager.Sfx.Dead);
+            }
         }
 
         IEnumerator KnockBack()

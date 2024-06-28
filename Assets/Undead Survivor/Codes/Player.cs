@@ -9,6 +9,7 @@ public class Player : MonoBehaviour
     public float speed;
     public Scanner scanner;
     public Hand[] hands;
+    public RuntimeAnimatorController[] animCon;
 
     Rigidbody2D rigid;
     SpriteRenderer spriter;
@@ -23,6 +24,12 @@ public class Player : MonoBehaviour
         hands = GetComponentsInChildren<Hand>(true);
     }
 
+    private void OnEnable()
+    {
+        speed *= Character.Speed;
+        anim.runtimeAnimatorController = animCon[GameManager.Instance.playerId];
+    }
+
     // Inputsystem을 설치해서 사용하고 있으니 아래의 코드는 무용.
     //void Update()
     //{
@@ -32,6 +39,9 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if(!GameManager.Instance.isLive)
+            return;
+
         Vector2 nextVec = inputVec.normalized * speed * Time.fixedDeltaTime;
 
         // 1. 힘을 준다
@@ -52,12 +62,35 @@ public class Player : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (!GameManager.Instance.isLive)
+            return;
 
         anim.SetFloat("Speed", inputVec.magnitude);
 
         if (inputVec.x != 0)
         {
             spriter.flipX = inputVec.x < 0;
+        }
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (!GameManager.Instance.isLive)
+        {
+            return;
+        }
+
+        GameManager.Instance.health -= Time.deltaTime * 10;
+
+        if(GameManager.Instance.health < 0)
+        {
+            for(int index =2; index < transform.childCount; index++)
+            {
+                transform.GetChild(index).gameObject.SetActive(false);
+            }
+
+            anim.SetTrigger("Death");
+            GameManager.Instance.GameOver();
         }
     }
 }
